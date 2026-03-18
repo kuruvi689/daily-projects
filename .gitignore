@@ -1,33 +1,22 @@
-# CRITICAL: Environment files with API keys - NEVER commit
+# Environment files - NEVER commit
 .env
 *.env
 
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-
-# Virtual environments
 venv/
 env/
-ENV/
 
-# IDE files
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Logs and temporary files
+# Logs
 *.log
 AGENT_LOG.txt
 *.tmp
-*.temp
-_karen_temp.mp3
-_k.mp3
