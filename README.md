@@ -15,9 +15,10 @@ This repository documents my journey toward:
 See [PROJECT_LOG.md](PROJECT_LOG.md) for complete list with descriptions.
 
 ## Stats
-- **Total Projects:** 1
-- **Current Streak:** 1 day
-- **Goal Areas Covered:** 1
+- **Total Projects:** 2
+- **Current Streak:** 2 days
+- **Goal Areas Covered:** 2
 
 ## Recent Projects
+- [2026-03-16-wealth-projection-tool](2026-03-16-wealth-projection-tool/) - Compound interest & FIRE calculator.
 - [2026-03-15-llm-response-analyzer](2026-03-15-llm-response-analyzer/) - Quality analyzer for LLM outputs.
