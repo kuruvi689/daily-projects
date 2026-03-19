@@ -1,0 +1,1 @@
+[Full strategic-thinking skill content - decision frameworks, risk assessment, goal planning, OKRs]
