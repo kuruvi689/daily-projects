@@ -1,0 +1,1 @@
+[Financial independence skill content]
