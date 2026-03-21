@@ -1,226 +1,204 @@
-import datetime
-import random
+import os
+import json
+import requests
 
-# --- Constants & Configuration ---
-TARGET_DATE = datetime.date(2026, 3, 21)
-CURRENT_DATE = datetime.date.today()
-# Ensure DAYS_TO_TARGET is at least 1 to avoid division by zero in initial calculations if target date is past or today.
-DAYS_TO_TARGET = max(1, (TARGET_DATE - CURRENT_DATE).days) 
+# --- Configuration (config.py equivalent) ---
+# Load API key from environment variable
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# A simplified "AI" model registry / simulation for context within AI Mastery.
-AI_MODELS = {
-    "Cognito-1.0": {"status": "deployed", "efficiency": 0.85, "cost_per_query": 0.001},
-    "SynapseNet-Alpha": {"status": "research", "efficiency": 0.60, "cost_per_query": 0.005},
-    "Automaton-Pilot": {"status": "training", "efficiency": 0.75, "cost_per_query": 0.002}
-}
+# LLM model to use
+LLM_MODEL = "gpt-3.5-turbo" # Or "gpt-4" for higher quality, adjust cost accordingly
 
-class Teddy3StrategicArchitect:
+# --- Scraper Module (scraper.py equivalent) ---
+def fetch_financial_news_mock():
     """
-    The Teddy³ Strategic Architect.
-    Orchestrates AI Mastery, Financial Independence, and Automation Systems.
-    Manages strategic projects, simulates progress, and provides comprehensive reports
-    towards the key milestones set for 2026-03-21.
+    Mocks fetching financial news articles. In a real system, this would
+    scrape from various financial news sites, RSS feeds, or APIs.
+    Returns a list of dictionaries, each with 'title' and 'content'.
     """
-    def __init__(self, initial_capital: float = 150000.0):
-        """
-        Initializes the Strategic Architect with core metrics and an initial agenda.
-        :param initial_capital: The starting financial capital.
-        """
-        self.initial_capital = initial_capital
-        self.current_capital = initial_capital
-        self.ai_mastery_level = 0.3  # Scale 0.0 to 1.0, representing expertise and deployment
-        self.automation_index = 0.2  # Scale 0.0 to 1.0, representing level of system automation
-        self.strategic_projects = []
-        self._initialize_strategic_agenda()
+    mock_articles = [
+        {
+            "id": "news_001",
+            "source": "Financial Times",
+            "title": "Tech Giant X Reports Record Q3 Earnings, Shares Soar",
+            "content": "Shares of Tech Giant X jumped 15% today after the company announced "
+                       "better-than-expected third-quarter earnings, driven by strong "
+                       "growth in its cloud computing division and successful product launches. "
+                       "Analysts raised their price targets significantly."
+        },
+        {
+            "id": "news_002",
+            "source": "Wall Street Journal",
+            "title": "Global Supply Chain Disruptions Continue to Hit Manufacturing Sector",
+            "content": "Manufacturers worldwide are grappling with persistent supply chain "
+                       "issues, leading to production delays and increased costs. "
+                       "This could impact profitability for several industries through year-end."
+        },
+        {
+            "id": "news_003",
+            "source": "Reuters",
+            "title": "New Interest Rate Hike Expected as Inflation Concerns Mount",
+            "content": "Economists widely anticipate another interest rate hike by the central bank "
+                       "next month, as inflationary pressures show little sign of easing. "
+                       "This move aims to cool down the economy but could dampen consumer spending."
+        },
+        {
+            "id": "news_004",
+            "source": "Bloomberg",
+            "title": "Biotech Startup Y Secures Major Funding Round for Cancer Research",
+            "content": "Biotech Startup Y announced a successful Series B funding round, "
+                       "securing $100 million to accelerate its groundbreaking cancer research. "
+                       "The investment highlights growing confidence in novel therapeutic approaches."
+        }
+    ]
+    print(f"[{__name__}] Fetched {len(mock_articles)} mock financial news articles.")
+    return mock_articles
 
-    def _initialize_strategic_agenda(self):
-        """Sets up initial strategic projects aligned with AI Mastery, Financial Independence, and Automation."""
-        self.add_project("AI_Research_Deployment", "Deploy advanced AI models for predictive analytics across operations.",
-                         "AI Mastery", target_progress=0.7, estimated_cost=5000)
-        self.add_project("FI_Portfolio_Growth", "Optimize investment portfolio for aggressive, diversified growth.",
-                         "Financial Independence", target_progress=0.8, estimated_revenue=25000)
-        self.add_project("Automation_Workflow_V1", "Automate core business processes (reporting, data entry, resource allocation).",
-                         "Automation Systems", target_progress=0.6, estimated_cost=3000, estimated_savings=15000)
-        self.add_project("AI_Ethics_Framework", "Develop robust AI ethics, governance, and compliance policies.",
-                         "AI Mastery", target_progress=0.4, estimated_cost=1000)
-        self.add_project("FI_Emergency_Fund", "Establish a 12-month operational emergency fund for resilience.",
-                         "Financial Independence", target_progress=0.9, estimated_cost=8000)
-        self.add_project("Automation_Security_Audit", "Implement automated security audits and threat detection systems.",
-                         "Automation Systems", target_progress=0.5, estimated_cost=2000, estimated_savings=5000)
+# --- Analyzer Module (analyzer.py equivalent) ---
+def analyze_sentiment_with_llm(text: str) -> dict:
+    """
+    Uses an LLM to analyze the sentiment of a given text.
+    Returns a dictionary with 'sentiment' (e.g., 'positive', 'negative', 'neutral')
+    and 'score' (e.g., -1 to 1).
+    """
+    if not OPENAI_API_KEY:
+        return {"sentiment": "error", "score": 0.0, "reason": "OPENAI_API_KEY environment variable not set."}
 
-    def add_project(self, name: str, description: str, category: str,
-                    target_progress: float, estimated_cost: float = 0.0,
-                    estimated_revenue: float = 0.0, estimated_savings: float = 0.0):
-        """
-        Adds a strategic project to the architect's agenda.
-        :param name: Unique name of the project.
-        :param description: Detailed description of the project.
-        :param category: One of "AI Mastery", "Financial Independence", "Automation Systems".
-        :param target_progress: The completion threshold for the project (0.0 to 1.0).
-        :param estimated_cost: Expected cost to complete the project.
-        :param estimated_revenue: Expected revenue generated by the project.
-        :param estimated_savings: Expected savings realized from the project.
-        """
-        self.strategic_projects.append({
-            "name": name,
-            "description": description,
-            "category": category,
-            "current_progress": 0.0,
-            "target_progress": target_progress,
-            "estimated_cost": estimated_cost,
-            "estimated_revenue": estimated_revenue,
-            "estimated_savings": estimated_savings,
-            "status": "planned"
-        })
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+        }
+        payload = {
+            "model": LLM_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a financial sentiment analysis expert. Analyze the "
+                        "sentiment of the provided news text for its impact on financial markets "
+                        "or specific entities mentioned. Respond with a JSON object "
+                        "containing 'sentiment' (positive, negative, neutral) and a 'score' "
+                        "(a float between -1.0 for very negative and 1.0 for very positive). "
+                        "Also include a 'reason' explaining your sentiment based on the text."
+                    )
+                },
+                {"role": "user", "content": text}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.0 # Keep it deterministic for sentiment
+        }
 
-    def simulate_progress(self, days: int = 1):
-        """
-        Simulates strategic progress over a given number of days.
-        Updates capital, project progress, and overall strategic indices.
-        :param days: The number of days to simulate.
-        """
-        print(f"\n--- Simulating {days} day(s) of operations ---")
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        response_data = response.json()
         
-        # Simulate general operational costs and passive income streams.
-        # These are ongoing costs/incomes, independent of specific project completions.
-        daily_operational_cost = 250 * (1 + self.ai_mastery_level * 0.1) # AI tools might incur running costs
-        daily_passive_income = 400 * (1 + (self.current_capital / self.initial_capital - 1) * 0.1) # Capital can generate passive income
+        # Extract the JSON string from the LLM response
+        llm_output_str = response_data['choices'][0]['message']['content']
+        llm_sentiment = json.loads(llm_output_str)
 
-        self.current_capital -= daily_operational_cost * days
-        self.current_capital += daily_passive_income * days
-        self.current_capital += random.uniform(-100, 300) * days # Simulates market volatility or minor unforeseen events
+        # Validate the LLM's output structure
+        if "sentiment" not in llm_sentiment or "score" not in llm_sentiment:
+            print(f"[{__name__}] LLM returned unexpected format: {llm_sentiment}")
+            return {"sentiment": "neutral", "score": 0.0, "reason": "LLM output format error."}
+        
+        return llm_sentiment
 
-        # Iterate through projects to simulate individual progress
-        for project in self.strategic_projects:
-            if project["status"] == "completed":
-                continue
+    except requests.exceptions.RequestException as e:
+        print(f"[{__name__}] API request failed: {e}")
+        return {"sentiment": "error", "score": 0.0, "reason": f"API request error: {e}"}
+    except json.JSONDecodeError as e:
+        print(f"[{__name__}] Failed to parse LLM JSON response: {e}")
+        return {"sentiment": "error", "score": 0.0, "reason": f"LLM response JSON parsing error: {e}"}
+    except Exception as e:
+        print(f"[{__name__}] An unexpected error occurred during sentiment analysis: {e}")
+        return {"sentiment": "error", "score": 0.0, "reason": f"Unexpected error: {e}"}
 
-            # Base progress gain per day, adjusted for simulation period
-            base_progress_per_day = random.uniform(0.0001, 0.0005) 
-            progress_gain = base_progress_per_day * days
-            
-            # General boost from overall strategic maturity (AI Mastery and Automation Index)
-            progress_gain *= (1 + (self.ai_mastery_level + self.automation_index) / 2)
-            
-            # Category-specific boosts: higher mastery/index helps related projects more
-            if project["category"] == "AI Mastery":
-                progress_gain *= (1 + self.ai_mastery_level * 0.5) 
-            elif project["category"] == "Automation Systems":
-                progress_gain *= (1 + self.automation_index * 0.5) 
-            elif project["category"] == "Financial Independence":
-                progress_gain *= (1 + (self.current_capital / self.initial_capital - 1) * 0.2) 
 
-            project["current_progress"] += progress_gain
-            project["current_progress"] = min(project["current_progress"], project["target_progress"])
+# --- Aggregator Module (aggregator.py equivalent) ---
+def aggregate_sentiment_results(analyzed_articles: list) -> dict:
+    """
+    Aggregates sentiment results from multiple articles.
+    Calculates overall sentiment, average score, and counts per sentiment type.
+    """
+    total_score = 0
+    sentiment_counts = {"positive": 0, "negative": 0, "neutral": 0, "error": 0}
+    
+    for article in analyzed_articles:
+        score = article.get("sentiment_result", {}).get("score", 0.0)
+        sentiment_type = article.get("sentiment_result", {}).get("sentiment", "neutral").lower()
+        
+        total_score += score
+        sentiment_counts[sentiment_type] = sentiment_counts.get(sentiment_type, 0) + 1
 
-            # Check for project completion
-            if project["current_progress"] >= project["target_progress"]:
-                if project["status"] != "completed": # Ensure effects only apply once
-                    project["status"] = "completed"
-                    print(f"  Project '{project['name']}' ({project['category']}) has reached its target completion!")
-                    self._project_completion_effect(project) # Apply specific project financial impact and index boosts
+    num_articles = len(analyzed_articles)
+    if num_articles == 0:
+        return {
+            "overall_sentiment": "neutral",
+            "average_score": 0.0,
+            "sentiment_distribution": sentiment_counts,
+            "total_articles": 0
+        }
 
-        # Recalculate overall strategic indices based on the average progress of active projects in each category
-        ai_projects_progress = [p["current_progress"] for p in self.strategic_projects if p["category"] == "AI Mastery"]
-        self.ai_mastery_level = sum(ai_projects_progress) / max(1, len(ai_projects_progress)) if ai_projects_progress else self.ai_mastery_level
-
-        auto_projects_progress = [p["current_progress"] for p in self.strategic_projects if p["category"] == "Automation Systems"]
-        self.automation_index = sum(auto_projects_progress) / max(1, len(auto_projects_progress)) if auto_projects_progress else self.automation_index
-
-    def _project_completion_effect(self, project: dict):
-        """
-        Applies financial and strategic effects upon individual project completion.
-        Adjusts capital based on project's estimated costs, revenues, and savings.
-        :param project: The completed project dictionary.
-        """
-        self.current_capital -= project["estimated_cost"]
-        self.current_capital += project["estimated_revenue"]
-        self.current_capital += project["estimated_savings"]
-        print(f"  Financial impact for '{project['name']}': Cost -${project['estimated_cost']:,.2f}, Revenue +${project['estimated_revenue']:,.2f}, Savings +${project['estimated_savings']:,.2f}")
-
-        # Provide a small additional boost to category mastery for completed projects
-        if project["category"] == "AI Mastery":
-            self.ai_mastery_level = min(1.0, self.ai_mastery_level + 0.05)
-        elif project["category"] == "Automation Systems":
-            self.automation_index = min(1.0, self.automation_index + 0.05)
-
-    def generate_strategic_report(self):
-        """Generates a comprehensive strategic report, summarizing current state and progress."""
-        print("\n" + "="*80)
-        print(f"Teddy³ Strategic Architect Report - As of {CURRENT_DATE.strftime('%Y-%m-%d')}")
-        print(f"Target Date: {TARGET_DATE.strftime('%Y-%m-%d')} ({DAYS_TO_TARGET} days remaining)")
-        print("="*80)
-
-        print("\n--- Financial Overview ---")
-        print(f"Initial Capital: ${self.initial_capital:,.2f}")
-        print(f"Current Capital: ${self.current_capital:,.2f}")
-        print(f"Capital Change: ${self.current_capital - self.initial_capital:,.2f}")
-        print(f"Financial Independence Progress: {self._calculate_fi_progress():.2f}% (Target: 2x Initial Capital)")
-
-        print("\n--- Strategic Goal Status ---")
-        print(f"AI Mastery Level: {self.ai_mastery_level:.2f} (Target: High proficiency & broad deployment)")
-        print(f"Automation Index: {self.automation_index:.2f} (Target: Extensive integration & efficiency)")
-
-        print("\n--- Project Portfolio ---")
-        for project in self.strategic_projects:
-            progress_percent = project["current_progress"] * 100
-            target_percent = project["target_progress"] * 100
-            status_indicator = "✅" if project["status"] == "completed" else "⏳"
-            print(f"{status_indicator} [{project['category']}] {project['name']}: {project['description']}")
-            print(f"    Progress: {progress_percent:.1f}% / {target_percent:.1f}% Target | Status: {project['status'].capitalize()}")
-            if any([project["estimated_cost"], project["estimated_revenue"], project["estimated_savings"]]):
-                print(f"    Est. Financial Impact: Cost -${project['estimated_cost']:,.2f}, Revenue +${project['estimated_revenue']:,.2f}, Savings +${project['estimated_savings']:,.2f}")
-
-        print("\n--- AI Model Inventory (Sample) ---")
-        for model_name, data in AI_MODELS.items():
-            print(f"- {model_name}: Status '{data['status']}', Efficiency {data['efficiency']:.2f}, Cost ${data['cost_per_query']:.4f}/query")
-
-        print("\n" + "="*80)
-        print("Strategic Guidance: Continue optimizing resource allocation, prioritize high-impact projects, and monitor market dynamics for adaptive strategy.")
-        print("End of Report.")
-        print("="*80)
-
-    def _calculate_fi_progress(self) -> float:
-        """
-        Calculates a simplified Financial Independence progress percentage.
-        Assumes a target of 2x the initial capital for FI.
-        """
-        fi_target = self.initial_capital * 2.0
-        return min(100.0, (self.current_capital / fi_target) * 100.0)
-
-# --- Main Execution Block ---
-if __name__ == "__main__":
-    # Instantiate the Teddy³ Architect with an initial capital
-    teddy3 = Teddy3StrategicArchitect(initial_capital=150000.0)
-
-    print(f"Initiating Teddy³ Strategic Operations. Target: {TARGET_DATE.strftime('%Y-%m-%d')}. Days remaining: {DAYS_TO_TARGET}")
-
-    if DAYS_TO_TARGET <= 1: # If target is today or in the past (handled by setting DAYS_TO_TARGET to 1)
-        print("Target date has passed or is today. Generating final report.")
-        teddy3.generate_strategic_report()
+    average_score = total_score / num_articles
+    
+    if average_score > 0.1:
+        overall_sentiment = "generally positive"
+    elif average_score < -0.1:
+        overall_sentiment = "generally negative"
     else:
-        # Simulate strategic operations in phases towards the target date
-        # This breaks down the simulation into manageable chunks for reporting.
-        phase1_days = DAYS_TO_TARGET // 3
-        phase2_days = DAYS_TO_TARGET // 3
-        phase3_days = DAYS_TO_TARGET - phase1_days - phase2_days
+        overall_sentiment = "mixed/neutral"
 
-        # Phase 1: Initial ramp-up and execution
-        print(f"\nPhase 1: Initial Operations ({phase1_days} days simulation total)")
-        for i in range(2): # Two simulation steps within Phase 1
-             teddy3.simulate_progress(phase1_days // 2)
-        teddy3.generate_strategic_report()
+    return {
+        "overall_sentiment": overall_sentiment,
+        "average_score": round(average_score, 4),
+        "sentiment_distribution": sentiment_counts,
+        "total_articles": num_articles
+    }
 
-        # Phase 2: Mid-term acceleration and optimization
-        print(f"\nPhase 2: Mid-Term Acceleration ({phase2_days} days simulation total)")
-        for i in range(2): # Two simulation steps within Phase 2
-            teddy3.simulate_progress(phase2_days // 2)
-        teddy3.generate_strategic_report()
+# --- Main Orchestrator (main.py equivalent) ---
+def run_fin_sense_ai():
+    """
+    Orchestrates the entire process: fetching news, analyzing sentiment, and aggregating results.
+    """
+    print("[FinSenseAI] Starting financial news sentiment analysis...")
 
-        # Phase 3: Final push and consolidation to reach target milestones
-        print(f"\nPhase 3: Final Push ({phase3_days} days simulation total)")
-        teddy3.simulate_progress(phase3_days) # Simulate remaining days in one go for the final sprint
+    # 1. Fetch news
+    articles = fetch_financial_news_mock()
+    if not articles:
+        print("[FinSenseAI] No articles fetched. Exiting.")
+        return
+
+    # 2. Analyze sentiment for each article
+    analyzed_articles = []
+    for article in articles:
+        print(f"[FinSenseAI] Analyzing sentiment for: '{article['title']}'...")
+        sentiment_result = analyze_sentiment_with_llm(article['content'])
+        article['sentiment_result'] = sentiment_result
+        analyzed_articles.append(article)
         
-        # Final strategic report for the target date
-        print("\n--- Final Strategic Report for Target Date ---")
-        teddy3.generate_strategic_report()
+    # 3. Aggregate results
+    final_aggregation = aggregate_sentiment_results(analyzed_articles)
+
+    print("\n--- Individual Article Analysis ---")
+    for article in analyzed_articles:
+        print(f"Title: {article['title']}")
+        print(f"  Sentiment: {article['sentiment_result'].get('sentiment', 'N/A')} "
+              f"(Score: {article['sentiment_result'].get('score', 'N/A'):.2f})")
+        print(f"  Reason: {article['sentiment_result'].get('reason', 'N/A')}\n")
+
+    print("\n--- Overall Market Sentiment Summary ---")
+    print(json.dumps(final_aggregation, indent=4))
+
+    # Optional: Save results to a JSON file
+    output_filename = "fin_sense_ai_results.json"
+    with open(output_filename, 'w') as f:
+        json.dump({
+            "individual_articles": analyzed_articles,
+            "overall_summary": final_aggregation
+        }, f, indent=4)
+    print(f"\n[FinSenseAI] Results saved to {output_filename}")
+
+
+if __name__ == "__main__":
+    run_fin_sense_ai()
