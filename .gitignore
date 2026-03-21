@@ -1,3 +1,16 @@
-.env
-.venv/
+# Python 
 __pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Teddy³ Infrastructure (Private)
+core_system/
+AGENT_LOG.txt
+.env
+GOALS.md
+BACKLOG.json
