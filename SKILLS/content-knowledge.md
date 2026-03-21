@@ -1,1 +1,0 @@
-[Full content-knowledge skill content - knowledge graphs, spaced repetition, documentation, learning systems]

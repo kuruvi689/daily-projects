@@ -1,1 +1,0 @@
-[Full technical-expertise skill content - system monitoring, DevOps, performance optimization, API design]
