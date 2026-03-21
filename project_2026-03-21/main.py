@@ -1,225 +1,226 @@
 import datetime
 import random
 
-# --- Constants & Configuration for Teddy³ Strategic Operations ---
-# The strategic horizon for this particular run, representing the target date for analysis.
-STRATEGIC_DATE = datetime.date(2026, 3, 21)
+# --- Constants & Configuration ---
+TARGET_DATE = datetime.date(2026, 3, 21)
+CURRENT_DATE = datetime.date.today()
+# Ensure DAYS_TO_TARGET is at least 1 to avoid division by zero in initial calculations if target date is past or today.
+DAYS_TO_TARGET = max(1, (TARGET_DATE - CURRENT_DATE).days) 
 
-def _log_event(message: str):
-    """Logs a timestamped message from Teddy³ Strategic Architect."""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] Teddy³ Arch: {message}")
+# A simplified "AI" model registry / simulation for context within AI Mastery.
+AI_MODELS = {
+    "Cognito-1.0": {"status": "deployed", "efficiency": 0.85, "cost_per_query": 0.001},
+    "SynapseNet-Alpha": {"status": "research", "efficiency": 0.60, "cost_per_query": 0.005},
+    "Automaton-Pilot": {"status": "training", "efficiency": 0.75, "cost_per_query": 0.002}
+}
 
-def _load_strategic_parameters() -> dict:
+class Teddy3StrategicArchitect:
     """
-    Loads core strategic parameters for Aegis³ Financial AI.
-    Embodies AI Mastery, Financial Independence, and Automation Systems goals.
+    The Teddy³ Strategic Architect.
+    Orchestrates AI Mastery, Financial Independence, and Automation Systems.
+    Manages strategic projects, simulates progress, and provides comprehensive reports
+    towards the key milestones set for 2026-03-21.
     """
-    _log_event("Loading strategic parameters...")
-    strategic_params = {
-        "target_independence_value_usd": 10_000_000.00, # Financial independence goal
-        "risk_tolerance": "moderate", # 'low', 'moderate', 'high'
-        "automation_level": "full_execution_simulated", # How autonomous is the system
-        "ai_strategy_model": "adaptive_growth_v3.1", # AI Mastery model
-        "capital_per_trade_usd": 5000.00, # Max capital per simulated trade
-        "portfolio_allocation_bias": {"tech": 0.4, "energy": 0.2} # Example AI bias
-    }
-    _log_event(f"Parameters loaded for model '{strategic_params['ai_strategy_model']}'.")
-    return strategic_params
+    def __init__(self, initial_capital: float = 150000.0):
+        """
+        Initializes the Strategic Architect with core metrics and an initial agenda.
+        :param initial_capital: The starting financial capital.
+        """
+        self.initial_capital = initial_capital
+        self.current_capital = initial_capital
+        self.ai_mastery_level = 0.3  # Scale 0.0 to 1.0, representing expertise and deployment
+        self.automation_index = 0.2  # Scale 0.0 to 1.0, representing level of system automation
+        self.strategic_projects = []
+        self._initialize_strategic_agenda()
 
-def _simulate_market_data(num_assets: int = 5) -> list:
-    """
-    Simulates real-time market data for various assets.
-    Represents data acquisition for automation systems.
-    """
-    _log_event(f"Simulating market data for {num_assets} assets...")
-    asset_symbols_pool = ["AEGIS_ETH", "AEGIS_BTC", "QNTM_AI", "COSMOS_EN", "SOLAR_INV", "NEO_SYS", "GLBL_MM"]
-    random.shuffle(asset_symbols_pool) # Shuffle to get random selection
+    def _initialize_strategic_agenda(self):
+        """Sets up initial strategic projects aligned with AI Mastery, Financial Independence, and Automation."""
+        self.add_project("AI_Research_Deployment", "Deploy advanced AI models for predictive analytics across operations.",
+                         "AI Mastery", target_progress=0.7, estimated_cost=5000)
+        self.add_project("FI_Portfolio_Growth", "Optimize investment portfolio for aggressive, diversified growth.",
+                         "Financial Independence", target_progress=0.8, estimated_revenue=25000)
+        self.add_project("Automation_Workflow_V1", "Automate core business processes (reporting, data entry, resource allocation).",
+                         "Automation Systems", target_progress=0.6, estimated_cost=3000, estimated_savings=15000)
+        self.add_project("AI_Ethics_Framework", "Develop robust AI ethics, governance, and compliance policies.",
+                         "AI Mastery", target_progress=0.4, estimated_cost=1000)
+        self.add_project("FI_Emergency_Fund", "Establish a 12-month operational emergency fund for resilience.",
+                         "Financial Independence", target_progress=0.9, estimated_cost=8000)
+        self.add_project("Automation_Security_Audit", "Implement automated security audits and threat detection systems.",
+                         "Automation Systems", target_progress=0.5, estimated_cost=2000, estimated_savings=5000)
 
-    market_data = []
-    for i in range(min(num_assets, len(asset_symbols_pool))):
-        symbol = asset_symbols_pool[i]
-        current_price = round(random.uniform(50.0, 5000.0), 2)
-        
-        trend_roll = random.random()
-        if trend_roll < 0.25: trend, volatility = "bearish", random.uniform(0.05, 0.15)
-        elif trend_roll < 0.65: trend, volatility = "stable", random.uniform(0.001, 0.01)
-        else: trend, volatility = "bullish", random.uniform(0.02, 0.08)
-
-        change_percent = random.uniform(-volatility, volatility)
-        if trend == "bullish": change_percent = abs(change_percent)
-        if trend == "bearish": change_percent = -abs(change_percent)
-            
-        projected_price = round(current_price * (1 + change_percent), 2)
-
-        market_data.append({
-            "symbol": symbol,
-            "current_price": current_price,
-            "projected_price": projected_price,
-            "trend": trend,
-            "volatility": volatility
+    def add_project(self, name: str, description: str, category: str,
+                    target_progress: float, estimated_cost: float = 0.0,
+                    estimated_revenue: float = 0.0, estimated_savings: float = 0.0):
+        """
+        Adds a strategic project to the architect's agenda.
+        :param name: Unique name of the project.
+        :param description: Detailed description of the project.
+        :param category: One of "AI Mastery", "Financial Independence", "Automation Systems".
+        :param target_progress: The completion threshold for the project (0.0 to 1.0).
+        :param estimated_cost: Expected cost to complete the project.
+        :param estimated_revenue: Expected revenue generated by the project.
+        :param estimated_savings: Expected savings realized from the project.
+        """
+        self.strategic_projects.append({
+            "name": name,
+            "description": description,
+            "category": category,
+            "current_progress": 0.0,
+            "target_progress": target_progress,
+            "estimated_cost": estimated_cost,
+            "estimated_revenue": estimated_revenue,
+            "estimated_savings": estimated_savings,
+            "status": "planned"
         })
-    _log_event(f"Market data simulation complete. First asset: {market_data[0]['symbol']} @ ${market_data[0]['current_price']}.")
-    return market_data
 
-def _evaluate_strategic_assets(market_data: list, strategic_params: dict) -> list:
-    """
-    AI Mastery engine: evaluates assets, generating recommendations.
-    Uses rule-based logic to simulate complex decision-making.
-    """
-    _log_event("Aegis³ AI evaluating assets...")
-    recommendations = []
-    risk_tolerance = strategic_params["risk_tolerance"]
-
-    for asset in market_data:
-        symbol, current_price, projected_price, trend, volatility = \
-            asset["symbol"], asset["current_price"], asset["projected_price"], asset["trend"], asset["volatility"]
+    def simulate_progress(self, days: int = 1):
+        """
+        Simulates strategic progress over a given number of days.
+        Updates capital, project progress, and overall strategic indices.
+        :param days: The number of days to simulate.
+        """
+        print(f"\n--- Simulating {days} day(s) of operations ---")
         
-        action, rationale = "HOLD", "No strong signal."
+        # Simulate general operational costs and passive income streams.
+        # These are ongoing costs/incomes, independent of specific project completions.
+        daily_operational_cost = 250 * (1 + self.ai_mastery_level * 0.1) # AI tools might incur running costs
+        daily_passive_income = 400 * (1 + (self.current_capital / self.initial_capital - 1) * 0.1) # Capital can generate passive income
 
-        if trend == "bullish" and projected_price > current_price * 1.02:
-            if risk_tolerance in ["high", "moderate"] and volatility < 0.1:
-                action, rationale = "BUY", "Strong bullish trend, positive growth."
-            elif risk_tolerance == "low" and volatility < 0.05:
-                action, rationale = "CONSIDER_BUY", "Bullish trend, low volatility, cautious approach."
-        elif trend == "bearish" and projected_price < current_price * 0.98:
-            if risk_tolerance in ["low", "moderate"] and volatility > 0.03:
-                action, rationale = "SELL", "Significant bearish trend, mitigating losses."
-            elif risk_tolerance == "high" and volatility > 0.1:
-                action, rationale = "CONSIDER_SHORT", "Bearish trend, high volatility, short opportunity."
-        
-        if "AEGIS" in symbol and strategic_params["portfolio_allocation_bias"].get("tech", 0) > 0.3:
-            if action == "HOLD" and trend != "bearish": action, rationale = "LEAN_BUY", rationale + " (Tech bias)."
-                
-        recommendations.append({"symbol": symbol, "current_price": current_price,
-                                "projected_price": projected_price, "action": action, "rationale": rationale})
-    _log_event("Asset evaluation complete. Recommendations generated.")
-    return recommendations
+        self.current_capital -= daily_operational_cost * days
+        self.current_capital += daily_passive_income * days
+        self.current_capital += random.uniform(-100, 300) * days # Simulates market volatility or minor unforeseen events
 
-def _simulate_automated_portfolio_adjustment(
-    current_portfolio: dict, recommendations: list, strategic_params: dict
-) -> dict:
-    """
-    Simulates automation system executing trades based on AI recommendations.
-    Addresses 'Automation Systems' goal.
-    """
-    _log_event("Initiating automated portfolio adjustment...")
-    updated_portfolio = current_portfolio.copy()
-    available_capital = updated_portfolio.get("CASH", 0.0)
-    capital_per_trade = strategic_params["capital_per_trade_usd"]
+        # Iterate through projects to simulate individual progress
+        for project in self.strategic_projects:
+            if project["status"] == "completed":
+                continue
 
-    for rec in recommendations:
-        symbol, action, current_price = rec["symbol"], rec["action"], rec["current_price"]
-        current_holdings = updated_portfolio.get(symbol, {"quantity": 0, "avg_cost": 0.0})
-        
-        if action in ["BUY", "LEAN_BUY", "CONSIDER_BUY"]:
-            if available_capital >= capital_per_trade:
-                buy_quantity = capital_per_trade / current_price
-                total_cost = buy_quantity * current_price
-                new_total_quantity = current_holdings["quantity"] + buy_quantity
-                new_total_value = (current_holdings["quantity"] * current_holdings["avg_cost"]) + total_cost
-                updated_portfolio[symbol] = {"quantity": new_total_quantity, "avg_cost": new_total_value / new_total_quantity}
-                available_capital -= total_cost
-                _log_event(f"BUY: {buy_quantity:.2f} of {symbol} @ ${current_price:.2f}.")
-            else: _log_event(f"Insufficient capital for {symbol} BUY.")
-        elif action in ["SELL", "SELL_IF_OWNED"]:
-            if current_holdings["quantity"] > 0:
-                sell_quantity = min(current_holdings["quantity"], capital_per_trade / current_price if current_price else 0)
-                if sell_quantity > 0:
-                    updated_portfolio[symbol]["quantity"] -= sell_quantity
-                    available_capital += sell_quantity * current_price
-                    _log_event(f"SELL: {sell_quantity:.2f} of {symbol} @ ${current_price:.2f}.")
-                    if updated_portfolio[symbol]["quantity"] < 0.01: del updated_portfolio[symbol]; _log_event(f"Liquidated {symbol}.")
-            else: _log_event(f"No {symbol} holdings to SELL.")
-        elif action in ["SPECULATE", "CONSIDER_SHORT"]:
-            _log_event(f"AI suggests '{action}' for {symbol}. Advanced strategies not fully simulated.")
+            # Base progress gain per day, adjusted for simulation period
+            base_progress_per_day = random.uniform(0.0001, 0.0005) 
+            progress_gain = base_progress_per_day * days
+            
+            # General boost from overall strategic maturity (AI Mastery and Automation Index)
+            progress_gain *= (1 + (self.ai_mastery_level + self.automation_index) / 2)
+            
+            # Category-specific boosts: higher mastery/index helps related projects more
+            if project["category"] == "AI Mastery":
+                progress_gain *= (1 + self.ai_mastery_level * 0.5) 
+            elif project["category"] == "Automation Systems":
+                progress_gain *= (1 + self.automation_index * 0.5) 
+            elif project["category"] == "Financial Independence":
+                progress_gain *= (1 + (self.current_capital / self.initial_capital - 1) * 0.2) 
 
-    updated_portfolio["CASH"] = available_capital
-    _log_event("Automated portfolio adjustment complete.")
-    return updated_portfolio
+            project["current_progress"] += progress_gain
+            project["current_progress"] = min(project["current_progress"], project["target_progress"])
 
-def _generate_strategic_report(
-    current_portfolio: dict, strategic_params: dict, report_date: datetime.date
-) -> str:
-    """
-    Generates a high-level strategic report for Teddy³ operations.
-    Summarizes portfolio, progress towards financial independence, and AI influence.
-    """
-    _log_event(f"Generating report for {report_date}...")
-    report_lines = [
-        f"\n--- Teddy³ Strategic Report: Aegis³ Financial AI ({report_date}) ---",
-        f"AI Model: {strategic_params['ai_strategy_model']}",
-        f"Automation: {strategic_params['automation_level']}",
-        "-" * 60
-    ]
+            # Check for project completion
+            if project["current_progress"] >= project["target_progress"]:
+                if project["status"] != "completed": # Ensure effects only apply once
+                    project["status"] = "completed"
+                    print(f"  Project '{project['name']}' ({project['category']}) has reached its target completion!")
+                    self._project_completion_effect(project) # Apply specific project financial impact and index boosts
 
-    total_portfolio_value = current_portfolio.get("CASH", 0.0)
-    asset_breakdown = []
-    for symbol, details in current_portfolio.items():
-        if symbol == "CASH": continue
-        asset_price_for_display = details.get("current_price_snapshot", details.get("avg_cost", 1.0))
-        asset_value = details["quantity"] * asset_price_for_display
-        total_portfolio_value += asset_value
-        asset_breakdown.append(f"  - {symbol}: {details['quantity']:.2f} units (~${asset_value:,.2f})")
+        # Recalculate overall strategic indices based on the average progress of active projects in each category
+        ai_projects_progress = [p["current_progress"] for p in self.strategic_projects if p["category"] == "AI Mastery"]
+        self.ai_mastery_level = sum(ai_projects_progress) / max(1, len(ai_projects_progress)) if ai_projects_progress else self.ai_mastery_level
 
-    report_lines.append(f"Portfolio Summary:")
-    report_lines.append(f"  Total Portfolio Value: ${total_portfolio_value:,.2f}")
-    report_lines.append(f"  Liquid Cash: ${current_portfolio.get('CASH', 0.0):,.2f}")
-    if asset_breakdown: report_lines.append("  Asset Holdings:"); report_lines.extend(asset_breakdown)
+        auto_projects_progress = [p["current_progress"] for p in self.strategic_projects if p["category"] == "Automation Systems"]
+        self.automation_index = sum(auto_projects_progress) / max(1, len(auto_projects_progress)) if auto_projects_progress else self.automation_index
 
-    target_value = strategic_params["target_independence_value_usd"]
-    progress_percent = (total_portfolio_value / target_value) * 100
-    report_lines.append("-" * 60)
-    report_lines.append(f"Financial Independence Goal Progress:")
-    report_lines.append(f"  Target: ${target_value:,.2f} | Current: ${total_portfolio_value:,.2f} ({progress_percent:.2f}%)")
-    if progress_percent >= 100: report_lines.append("  Status: Goal achieved!")
-    elif progress_percent > 75: report_lines.append("  Status: Excellent progress.")
-    else: report_lines.append("  Status: On track, continued focus required.")
+    def _project_completion_effect(self, project: dict):
+        """
+        Applies financial and strategic effects upon individual project completion.
+        Adjusts capital based on project's estimated costs, revenues, and savings.
+        :param project: The completed project dictionary.
+        """
+        self.current_capital -= project["estimated_cost"]
+        self.current_capital += project["estimated_revenue"]
+        self.current_capital += project["estimated_savings"]
+        print(f"  Financial impact for '{project['name']}': Cost -${project['estimated_cost']:,.2f}, Revenue +${project['estimated_revenue']:,.2f}, Savings +${project['estimated_savings']:,.2f}")
 
-    report_lines.append("-" * 60)
-    report_lines.append("AI Strategic Insights: Aegis³ AI actively optimizing asset allocation.")
-    report_lines.append("--- End of Teddy³ Strategic Report ---")
-    _log_event("Strategic report generated.")
-    return "\n".join(report_lines)
+        # Provide a small additional boost to category mastery for completed projects
+        if project["category"] == "AI Mastery":
+            self.ai_mastery_level = min(1.0, self.ai_mastery_level + 0.05)
+        elif project["category"] == "Automation Systems":
+            self.automation_index = min(1.0, self.automation_index + 0.05)
 
-def run_teddy_cube_strategic_operations():
-    """
-    Main orchestrator for Teddy³'s strategic operations.
-    Simulates a single strategic cycle for the target date, embodying
-    AI Mastery, Financial Independence, and Automation Systems.
-    """
-    _log_event("Initiating Teddy³ Strategic Architect operations for 2026-03-21...")
+    def generate_strategic_report(self):
+        """Generates a comprehensive strategic report, summarizing current state and progress."""
+        print("\n" + "="*80)
+        print(f"Teddy³ Strategic Architect Report - As of {CURRENT_DATE.strftime('%Y-%m-%d')}")
+        print(f"Target Date: {TARGET_DATE.strftime('%Y-%m-%d')} ({DAYS_TO_TARGET} days remaining)")
+        print("="*80)
 
-    strategic_params = _load_strategic_parameters()
+        print("\n--- Financial Overview ---")
+        print(f"Initial Capital: ${self.initial_capital:,.2f}")
+        print(f"Current Capital: ${self.current_capital:,.2f}")
+        print(f"Capital Change: ${self.current_capital - self.initial_capital:,.2f}")
+        print(f"Financial Independence Progress: {self._calculate_fi_progress():.2f}% (Target: 2x Initial Capital)")
 
-    # Initial simulated portfolio state
-    initial_portfolio = {
-        "CASH": 250_000.00,
-        "AEGIS_ETH": {"quantity": 100.0, "avg_cost": 2500.0},
-        "QNTM_AI": {"quantity": 500.0, "avg_cost": 50.0}
-    }
-    _log_event(f"Initial portfolio loaded.")
+        print("\n--- Strategic Goal Status ---")
+        print(f"AI Mastery Level: {self.ai_mastery_level:.2f} (Target: High proficiency & broad deployment)")
+        print(f"Automation Index: {self.automation_index:.2f} (Target: Extensive integration & efficiency)")
 
-    market_data = _simulate_market_data(num_assets=random.randint(4, 7))
-    
-    # Update initial portfolio with current market prices for valuation
-    for asset_data in market_data:
-        symbol = asset_data['symbol']
-        if symbol in initial_portfolio and symbol != "CASH":
-            initial_portfolio[symbol]["current_price_snapshot"] = asset_data["current_price"]
-    
-    ai_recommendations = _evaluate_strategic_assets(market_data, strategic_params)
-    
-    # For a concise report summary of recommendations:
-    rec_summary = ", ".join([f"{r['symbol']}:{r['action']}" for r in ai_recommendations])
-    _log_event(f"AI Recommendations: {rec_summary}")
+        print("\n--- Project Portfolio ---")
+        for project in self.strategic_projects:
+            progress_percent = project["current_progress"] * 100
+            target_percent = project["target_progress"] * 100
+            status_indicator = "✅" if project["status"] == "completed" else "⏳"
+            print(f"{status_indicator} [{project['category']}] {project['name']}: {project['description']}")
+            print(f"    Progress: {progress_percent:.1f}% / {target_percent:.1f}% Target | Status: {project['status'].capitalize()}")
+            if any([project["estimated_cost"], project["estimated_revenue"], project["estimated_savings"]]):
+                print(f"    Est. Financial Impact: Cost -${project['estimated_cost']:,.2f}, Revenue +${project['estimated_revenue']:,.2f}, Savings +${project['estimated_savings']:,.2f}")
 
-    updated_portfolio = _simulate_automated_portfolio_adjustment(initial_portfolio, ai_recommendations, strategic_params)
+        print("\n--- AI Model Inventory (Sample) ---")
+        for model_name, data in AI_MODELS.items():
+            print(f"- {model_name}: Status '{data['status']}', Efficiency {data['efficiency']:.2f}, Cost ${data['cost_per_query']:.4f}/query")
 
-    final_report = _generate_strategic_report(updated_portfolio, strategic_params, STRATEGIC_DATE)
+        print("\n" + "="*80)
+        print("Strategic Guidance: Continue optimizing resource allocation, prioritize high-impact projects, and monitor market dynamics for adaptive strategy.")
+        print("End of Report.")
+        print("="*80)
 
-    print(final_report)
-    _log_event("Teddy³ Strategic Architect operations completed.")
+    def _calculate_fi_progress(self) -> float:
+        """
+        Calculates a simplified Financial Independence progress percentage.
+        Assumes a target of 2x the initial capital for FI.
+        """
+        fi_target = self.initial_capital * 2.0
+        return min(100.0, (self.current_capital / fi_target) * 100.0)
 
+# --- Main Execution Block ---
 if __name__ == "__main__":
-    run_teddy_cube_strategic_operations()
+    # Instantiate the Teddy³ Architect with an initial capital
+    teddy3 = Teddy3StrategicArchitect(initial_capital=150000.0)
+
+    print(f"Initiating Teddy³ Strategic Operations. Target: {TARGET_DATE.strftime('%Y-%m-%d')}. Days remaining: {DAYS_TO_TARGET}")
+
+    if DAYS_TO_TARGET <= 1: # If target is today or in the past (handled by setting DAYS_TO_TARGET to 1)
+        print("Target date has passed or is today. Generating final report.")
+        teddy3.generate_strategic_report()
+    else:
+        # Simulate strategic operations in phases towards the target date
+        # This breaks down the simulation into manageable chunks for reporting.
+        phase1_days = DAYS_TO_TARGET // 3
+        phase2_days = DAYS_TO_TARGET // 3
+        phase3_days = DAYS_TO_TARGET - phase1_days - phase2_days
+
+        # Phase 1: Initial ramp-up and execution
+        print(f"\nPhase 1: Initial Operations ({phase1_days} days simulation total)")
+        for i in range(2): # Two simulation steps within Phase 1
+             teddy3.simulate_progress(phase1_days // 2)
+        teddy3.generate_strategic_report()
+
+        # Phase 2: Mid-term acceleration and optimization
+        print(f"\nPhase 2: Mid-Term Acceleration ({phase2_days} days simulation total)")
+        for i in range(2): # Two simulation steps within Phase 2
+            teddy3.simulate_progress(phase2_days // 2)
+        teddy3.generate_strategic_report()
+
+        # Phase 3: Final push and consolidation to reach target milestones
+        print(f"\nPhase 3: Final Push ({phase3_days} days simulation total)")
+        teddy3.simulate_progress(phase3_days) # Simulate remaining days in one go for the final sprint
+        
+        # Final strategic report for the target date
+        print("\n--- Final Strategic Report for Target Date ---")
+        teddy3.generate_strategic_report()
