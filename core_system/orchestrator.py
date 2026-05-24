@@ -44,8 +44,8 @@ if sys.platform == "win32":
 DATE_STR = datetime.datetime.now().strftime("%Y-%m-%d")
 client   = genai.Client(api_key=API_KEY)
 
-PRIMARY_MODEL  = "gemini-1.5-flash"
-FALLBACK_MODEL = "gemini-1.5-flash-8b"
+PRIMARY_MODEL  = "gemini-2.0-flash"
+FALLBACK_MODEL = "gemini-1.5-flash"
 
 def slugify(text):
     return re.sub(r'[\s\W_]+', '-', text.lower()).strip('-')
