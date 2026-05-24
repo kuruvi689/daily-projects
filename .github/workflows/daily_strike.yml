@@ -1,0 +1,40 @@
+name: Daily Strike
+
+on:
+  schedule:
+    - cron: '30 2 * * *'  # 8:00 AM IST daily
+  workflow_dispatch:
+
+jobs:
+  strike:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-genai python-dotenv
+
+      - name: Run orchestrator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python core_system/orchestrator.py
+
+      - name: Push generated project
+        run: |
+          git config user.name  "Daily Strike Bot"
+          git config user.email "bot@teddycubed.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Auto-Strike: $(date +'%Y-%m-%d')"
+          git push
