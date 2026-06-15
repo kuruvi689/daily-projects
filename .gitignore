@@ -1,0 +1,27 @@
+# Environment files - never commit secrets
+.env
+*.env
+core_system/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+AGENT_LOG.txt
+*.tmp
+*.temp

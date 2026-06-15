@@ -9,6 +9,7 @@ CORE_DIR    = Path(__file__).resolve().parent
 PROJECT_DIR = CORE_DIR.parent
 ENV_PATH    = CORE_DIR / ".env"
 GOALS_PATH  = CORE_DIR / "GOALS.md"
+BACKLOG_PATH = PROJECT_DIR / "BACKLOG.md"
 LOG_PATH    = CORE_DIR / "result.log"
 
 # --- LOGGING ---
@@ -106,11 +107,13 @@ def parse_response(response):
     return json.loads(raw)
 
 def execute_strike():
-    if not GOALS_PATH.exists():
-        log.error("GOALS.md missing at %s", GOALS_PATH)
-        return
-
-    goals_content = GOALS_PATH.read_text(encoding='utf-8')
+    if GOALS_PATH.exists():
+        goals_content = GOALS_PATH.read_text(encoding='utf-8')
+    elif BACKLOG_PATH.exists():
+        log.info("GOALS.md missing; using BACKLOG.md as project guidance.")
+        goals_content = BACKLOG_PATH.read_text(encoding='utf-8')
+    else:
+        goals_content = "Build one small, useful Python CLI project aligned with AI, strategy, finance, productivity, or knowledge systems."
     goal = get_daily_goal()
 
     prompt = f"""
