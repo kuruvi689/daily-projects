@@ -105,6 +105,15 @@ class GroqClientTests(unittest.TestCase):
         self.assertEqual(transport.calls[0]["reasoning_effort"], "low")
         self.assertEqual(transport.calls[0]["response_format"], {"type": "json_object"})
 
+    def test_schema_uses_strict_json_schema_on_gpt_oss_only(self):
+        schema = {"type": "object"}
+        transport = ScriptedTransport([(404, {}, "gone"), ok_response()])
+        client, _ = self.make_client(transport)
+        client.chat_json("p", schema)
+        self.assertEqual(transport.calls[0]["response_format"]["type"], "json_schema")
+        self.assertTrue(transport.calls[0]["response_format"]["json_schema"]["strict"])
+        self.assertEqual(transport.calls[1]["response_format"], {"type": "json_object"})  # qwen
+
     def test_429_honours_retry_after_then_succeeds(self):
         transport = ScriptedTransport([(429, {"retry-after": "20"}, "{}"), ok_response()])
         client, fake = self.make_client(transport)

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -17,8 +18,9 @@ class FakeGroq:
         self.data = data
         self.prompts = []
 
-    def chat_json(self, prompt):
+    def chat_json(self, prompt, schema=None):
         self.prompts.append(prompt)
+        self.schema = schema
         return self.data, "openai/gpt-oss-120b"
 
 
@@ -94,6 +96,15 @@ class StrikeCoreTests(unittest.TestCase):
     def test_parse_json_text_handles_fences(self):
         self.assertEqual(strike_core.parse_json_text('```json\n{"a": 1}\n```'), {"a": 1})
         self.assertEqual(strike_core.parse_json_text('{"a": 1}'), {"a": 1})
+
+    def test_parse_json_text_ignores_fences_inside_strings(self):
+        raw = json.dumps({"name": "x", "readme": "Example:\n```json\n{\"a\": 1}\n```\n"})
+        self.assertEqual(strike_core.parse_json_text(raw)["readme"], "Example:\n```json\n{\"a\": 1}\n```\n")
+
+    def test_parse_json_text_repairs_bad_escapes_and_control_chars(self):
+        raw = '{"code": "re.match(r\'\\d+\', s)\n\tx = 1"}'  # bare \d plus raw newline/tab
+        self.assertEqual(strike_core.parse_json_text(raw), {"code": "re.match(r'\\d+', s)\n\tx = 1"})
+        self.assertEqual(strike_core.parse_json_text('{"a": "x\\\\d \\n"}'), {"a": "x\\d \n"})
 
     def test_validate_rejects_bad_requirements(self):
         with self.assertRaises(StrikeError):

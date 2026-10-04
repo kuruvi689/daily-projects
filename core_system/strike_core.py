@@ -50,7 +50,7 @@ class StrikeError(RuntimeError):
 
 
 class JsonChatClient(Protocol):
-    def chat_json(self, prompt: str) -> tuple[dict, str]: ...
+    def chat_json(self, prompt: str, schema: dict | None = None) -> tuple[dict, str]: ...
 
 
 def to_ist(now: datetime.datetime | None = None) -> datetime.datetime:
@@ -123,13 +123,42 @@ Return ONLY a JSON object with these exact keys:
 """
 
 
+PROJECT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "code": {"type": "string"},
+        "readme": {"type": "string"},
+        "requirements": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": list(REQUIRED_KEYS),
+    "additionalProperties": False,
+}
+
+# A backslash not starting a valid JSON escape, e.g. the "\d" in a regex inside code.
+_INVALID_ESCAPE = re.compile(r'(?<!\\)((?:\\\\)*)\\(?!["\\/bfnrtu])')
+
+
+def _strip_outer_fence(text: str) -> str:
+    """Remove a ```json ... ``` wrapper only when it encloses the whole response.
+
+    Fences *inside* the JSON (e.g. a README with a ```json example) must be left alone.
+    """
+    match = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, flags=re.DOTALL)
+    return match.group(1) if match else text
+
+
 def parse_json_text(raw: str) -> Any:
-    text = (raw or "").strip()
-    if "```json" in text:
-        text = text.split("```json", 1)[1].split("```", 1)[0]
-    elif text.startswith("```"):
-        text = text.split("```", 2)[1]
-    return json.loads(text.strip())
+    text = _strip_outer_fence((raw or "").strip())
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    try:
+        return json.loads(text, strict=False)  # raw control chars inside strings
+    except json.JSONDecodeError:
+        # Bad escapes inside code strings, e.g. an unescaped regex "\d".
+        return json.loads(_INVALID_ESCAPE.sub(r"\1\\\\", text), strict=False)
 
 
 def validate_project_payload(data: Any) -> None:
@@ -170,7 +199,8 @@ def generate_project(
     """Ask the model for today's project. Returns folder name, files, model and goal."""
     date_str = current_date_str(now)
     goal = get_daily_goal(now)
-    data, model = client.chat_json(build_prompt(goals_content or DEFAULT_GOALS, goal, date_str, list(existing)))
+    prompt = build_prompt(goals_content or DEFAULT_GOALS, goal, date_str, list(existing))
+    data, model = client.chat_json(prompt, PROJECT_SCHEMA)
     validate_project_payload(data)
     name = str(data["name"]).strip()
     return {

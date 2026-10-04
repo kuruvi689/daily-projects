@@ -179,7 +179,7 @@ class GroqClient:
     def estimate_tokens(self, prompt: str) -> int:
         return len(prompt) // CHARS_PER_TOKEN + self.max_completion_tokens
 
-    def _payload(self, model: str, prompt: str) -> dict:
+    def _payload(self, model: str, prompt: str, schema: dict | None = None) -> dict:
         payload = {
             "model": model,
             "messages": [
@@ -192,9 +192,15 @@ class GroqClient:
         }
         if model.startswith(REASONING_MODELS):
             payload["reasoning_effort"] = "low"  # leave the token budget for the answer
+            if schema:
+                # Constrained decoding: output is guaranteed to be valid JSON for this schema.
+                payload["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {"name": "project", "strict": True, "schema": schema},
+                }
         return payload
 
-    def _call(self, model: str, prompt: str, tokens: int, deadline: float) -> dict:
+    def _call(self, model: str, prompt: str, tokens: int, deadline: float, schema: dict | None = None) -> dict:
         self.limiter.acquire(tokens, deadline)
         headers = {
             "Authorization": f"Bearer {self._api_key}",
@@ -202,7 +208,7 @@ class GroqClient:
             "User-Agent": USER_AGENT,
         }
         timeout = max(5.0, min(120.0, deadline - self._clock()))
-        status, resp_headers, body = self._transport(GROQ_URL, headers, self._payload(model, prompt), timeout)
+        status, resp_headers, body = self._transport(GROQ_URL, headers, self._payload(model, prompt, schema), timeout)
         self.limiter.apply_headers(resp_headers, tokens)
         if status != 200:
             raise GroqHTTPError(status, body, resp_headers)
@@ -221,7 +227,7 @@ class GroqClient:
             raise ValueError(f"empty content (finish_reason={choice.get('finish_reason')})")
         return content
 
-    def chat_json(self, prompt: str) -> tuple[dict, str]:
+    def chat_json(self, prompt: str, schema: dict | None = None) -> tuple[dict, str]:
         """Return (parsed JSON object, model used), trying models strongest-first."""
         deadline = self._clock() + self.deadline_seconds
         tokens = self.estimate_tokens(prompt)
@@ -230,7 +236,7 @@ class GroqClient:
             for attempt in range(1, MAX_ATTEMPTS_PER_MODEL + 1):
                 try:
                     log.info("Calling Groq model %s (attempt %d)", model, attempt)
-                    data = self._call(model, prompt, tokens, deadline)
+                    data = self._call(model, prompt, tokens, deadline, schema)
                     content = self._content(data)
                     try:
                         parsed = parse_json_text(content)
