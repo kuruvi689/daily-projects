@@ -127,9 +127,16 @@ class GroqClientTests(unittest.TestCase):
         self.assertEqual(model, "openai/gpt-oss-120b")
         self.assertEqual(len(transport.calls), 2)
 
-    def test_falls_back_on_invalid_json(self):
+    def test_invalid_json_retries_same_model_once(self):
         bad = (200, {}, json.dumps({"choices": [{"message": {"content": "not json"}}], "usage": {}}))
         transport = ScriptedTransport([bad, ok_response()])
+        client, _ = self.make_client(transport)
+        _, model = client.chat_json("p")
+        self.assertEqual(model, "openai/gpt-oss-120b")
+
+    def test_falls_back_after_repeated_empty_content(self):
+        empty = (200, {}, json.dumps({"choices": [{"message": {"content": ""}, "finish_reason": "length"}]}))
+        transport = ScriptedTransport([empty, empty, ok_response()])
         client, _ = self.make_client(transport)
         _, model = client.chat_json("p")
         self.assertEqual(model, "qwen/qwen3.8-27b")

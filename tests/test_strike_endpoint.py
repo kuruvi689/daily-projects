@@ -23,12 +23,12 @@ class FakeGroq:
 
 
 class FakePublisher:
-    def __init__(self, existing=None):
-        self.existing = existing
+    def __init__(self, folders=("2026-03-16-wealth-projection-tool", "core_system", "api")):
+        self.folders = list(folders)
         self.commits = []
 
-    def find_folder_with_prefix(self, prefix):
-        return self.existing
+    def list_folders(self):
+        return self.folders
 
     def read_text(self, path):
         return "BACKLOG CONTENT" if path == "BACKLOG.md" else None
@@ -59,12 +59,23 @@ class RunStrikeTests(unittest.TestCase):
         self.assertEqual(files[f"{body['folder']}/requirements.txt"], "requests\n")
         self.assertIn("Auto-Strike:", message)
         self.assertIn("BACKLOG CONTENT", groq.prompts[0])
+        self.assertIn("wealth-projection-tool", groq.prompts[0])  # told not to repeat it
+        self.assertNotIn("core_system", groq.prompts[0].split("ALREADY BUILT")[1])
 
     def test_skips_when_today_already_built(self):
-        groq, publisher = FakeGroq(), FakePublisher(existing="2026-10-04-done")
+        today = f"{strike_core.current_date_str()}-done"
+        groq, publisher = FakeGroq(), FakePublisher(folders=[today])
         status, body = strike_api.run_strike(env={}, groq=groq, publisher=publisher)
-        self.assertEqual((status, body["status"]), (200, "skipped"))
+        self.assertEqual((status, body["status"], body["folder"]), (200, "skipped", today))
         self.assertEqual(groq.prompts, [])
+        self.assertEqual(publisher.commits, [])
+
+    def test_dry_run_generates_without_committing(self):
+        today = f"{strike_core.current_date_str()}-done"
+        groq, publisher = FakeGroq(), FakePublisher(folders=[today])
+        status, body = strike_api.run_strike(env={}, groq=groq, publisher=publisher, dry_run=True)
+        self.assertEqual((status, body["status"]), (200, "dry_run"))
+        self.assertEqual(body["lines"]["main.py"], 1)
         self.assertEqual(publisher.commits, [])
 
     def test_invalid_model_payload_is_not_committed(self):

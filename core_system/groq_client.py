@@ -159,7 +159,7 @@ class GroqClient:
         api_key: str,
         limits: RateLimits = RateLimits(),
         models: tuple[str, ...] = MODELS,
-        max_completion_tokens: int = 5500,
+        max_completion_tokens: int = 4500,  # real projects use ~1.4-1.8K; leaves 2.5x headroom
         deadline_seconds: float = 240.0,
         transport: Transport = urllib_transport,
         clock: Callable[[], float] = time.monotonic,
@@ -206,9 +206,20 @@ class GroqClient:
         self.limiter.apply_headers(resp_headers, tokens)
         if status != 200:
             raise GroqHTTPError(status, body, resp_headers)
-        data = json.loads(body)
+        try:
+            data = json.loads(body)
+        except ValueError as exc:
+            raise ValueError(f"non-JSON body ({len(body)} chars): {body[:200]!r}") from exc
         self.limiter.record_usage(int(data.get("usage", {}).get("total_tokens", 0)))
         return data
+
+    @staticmethod
+    def _content(data: dict) -> str:
+        choice = data["choices"][0]
+        content = choice["message"].get("content") or ""
+        if not content.strip():
+            raise ValueError(f"empty content (finish_reason={choice.get('finish_reason')})")
+        return content
 
     def chat_json(self, prompt: str) -> tuple[dict, str]:
         """Return (parsed JSON object, model used), trying models strongest-first."""
@@ -220,8 +231,13 @@ class GroqClient:
                 try:
                     log.info("Calling Groq model %s (attempt %d)", model, attempt)
                     data = self._call(model, prompt, tokens, deadline)
-                    content = data["choices"][0]["message"]["content"]
-                    return parse_json_text(content), model
+                    content = self._content(data)
+                    try:
+                        parsed = parse_json_text(content)
+                    except ValueError as exc:
+                        finish = data["choices"][0].get("finish_reason")
+                        raise ValueError(f"invalid JSON content (finish_reason={finish}): {content[:200]!r}") from exc
+                    return parsed, model
                 except GroqHTTPError as exc:
                     errors.append(f"{model}: HTTP {exc.status}")
                     log.warning("Groq %s failed: %s", model, exc)
@@ -233,7 +249,9 @@ class GroqClient:
                 except (ValueError, KeyError, IndexError) as exc:
                     errors.append(f"{model}: bad response ({exc.__class__.__name__})")
                     log.warning("Groq %s returned an unusable response: %s", model, exc)
-                    break
+                    if attempt >= 2:
+                        break  # one retry on the same model, then fall back
+                    continue
                 except GroqError:
                     raise  # deadline or budget problems will not improve by retrying
                 except OSError as exc:  # network errors / timeouts

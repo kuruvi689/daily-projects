@@ -19,6 +19,7 @@ from core_system.strike_core import (  # noqa: E402
     StrikeError,
     current_date_str,
     generate_project,
+    project_folders,
 )
 
 # --- PATHS (absolute, platform-safe) ---
@@ -125,7 +126,8 @@ def execute_strike() -> Path:
 
     load_env_files()
     client = GroqClient(os.environ.get("GROQ_API_KEY", ""))
-    project = generate_project(client, load_goals_content())
+    existing = project_folders([p.name for p in PROJECT_DIR.iterdir() if p.is_dir()])
+    project = generate_project(client, load_goals_content(), existing=existing)
     log.info("Theme: %s | Date: %s | Model: %s", project["goal"], project["date"], project["model"])
 
     path = PROJECT_DIR / project["folder"]

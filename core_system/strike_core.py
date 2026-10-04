@@ -77,7 +77,13 @@ def folder_name_for(date_str: str, project_name: str) -> str:
     return f"{date_str}-{slug}"
 
 
-def build_prompt(goals_content: str, goal: dict, date_str: str) -> str:
+def project_folders(names: list[str]) -> list[str]:
+    """Daily project folders (YYYY-MM-DD-slug) from a list of directory names."""
+    return sorted(n for n in names if re.match(r"\d{4}-\d{2}-\d{2}-", n))
+
+
+def build_prompt(goals_content: str, goal: dict, date_str: str, existing: list[str] = ()) -> str:
+    already_built = ", ".join(n[11:] for n in existing[-40:]) or "none yet"
     return f"""
 STRICT MANDATE FOR TODAY - {date_str}
 Category: {goal['title']}
@@ -94,8 +100,11 @@ CONTEXT - Who you are building for:
 - Stack: Python, n8n, Railway, Vercel, Google APIs, Groq, Claude
 - Machine: Windows, Intel i5, no GPU - CPU-only, lightweight tools only
 
-GOALS FILE:
+GOALS FILE (ideas and direction - not a list to copy in order):
 {goals_content}
+
+ALREADY BUILT - do NOT repeat or lightly rename any of these:
+{already_built}
 
 TASK: Design a unique, high-leverage Python CLI tool that:
 1. Solves a real problem in the category above
@@ -152,11 +161,16 @@ def render_project_files(data: dict) -> dict[str, str]:
     }
 
 
-def generate_project(client: JsonChatClient, goals_content: str, now: datetime.datetime | None = None) -> dict:
+def generate_project(
+    client: JsonChatClient,
+    goals_content: str,
+    now: datetime.datetime | None = None,
+    existing: list[str] = (),
+) -> dict:
     """Ask the model for today's project. Returns folder name, files, model and goal."""
     date_str = current_date_str(now)
     goal = get_daily_goal(now)
-    data, model = client.chat_json(build_prompt(goals_content or DEFAULT_GOALS, goal, date_str))
+    data, model = client.chat_json(build_prompt(goals_content or DEFAULT_GOALS, goal, date_str, list(existing)))
     validate_project_payload(data)
     name = str(data["name"]).strip()
     return {

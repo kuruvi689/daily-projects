@@ -62,12 +62,9 @@ class GitHubPublisher:
             return None
         return base64.b64decode(data["content"]).decode("utf-8", "replace")
 
-    def find_folder_with_prefix(self, prefix: str) -> str | None:
+    def list_folders(self) -> list[str]:
         entries = self._request("GET", f"/contents/?ref={self.branch}")
-        for entry in entries if isinstance(entries, list) else []:
-            if entry.get("type") == "dir" and entry.get("name", "").startswith(prefix):
-                return entry["name"]
-        return None
+        return [e["name"] for e in entries if isinstance(e, dict) and e.get("type") == "dir"] if isinstance(entries, list) else []
 
     def commit_files(self, files: dict[str, str], message: str) -> str:
         """Create one commit on the branch containing all files. Returns the commit SHA."""
