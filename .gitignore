@@ -25,3 +25,8 @@ desktop.ini
 AGENT_LOG.txt
 *.tmp
 *.temp
+
+# Vercel
+.vercel
+
+.vercel

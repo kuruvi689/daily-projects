@@ -1,0 +1,10 @@
+# Deploy only the function and the shared core; the generated projects stay in git.
+/*
+!api
+!core_system
+!vercel.json
+core_system/.env
+core_system/result.log
+core_system/models.txt
+core_system/orchestrator.py
+**/__pycache__

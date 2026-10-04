@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- api core_system vercel.json .vercelignore",
+  "functions": {
+    "api/strike.py": { "maxDuration": 300 }
+  },
+  "crons": [
+    { "path": "/api/strike", "schedule": "0 3 * * *" }
+  ]
+}

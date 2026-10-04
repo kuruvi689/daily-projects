@@ -27,11 +27,11 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install google-genai python-dotenv
+        run: echo "stdlib only - no dependencies"
 
       - name: Run orchestrator
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python core_system/orchestrator.py
 
       - name: Verify today's project exists
